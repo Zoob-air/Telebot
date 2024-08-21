@@ -1,0 +1,62 @@
+[oracle@svrdbcons teguh]$ pwd
+/home/oracle/dbscript/teguh
+[oracle@svrdbcons teguh]$ ls -l udah_gila.sh
+-rwxr-xr-x 1 oracle dba 1742 Aug 21 14:10 udah_gila.sh
+[oracle@svrdbcons teguh]$ cat udah_gila.sh
+#!/bin/bash
+# Mendapatkan tanggal saat ini
+TANGGAL=$(date "+%Y%m%d")
+
+NAMA_LOG="/home/oracle/dbscript/teguh/kambing/daily_report_${TANGGAL}.log"
+
+touch $NAMA_LOG
+echo -e "                          DBA Oracle On Jakarta Smart City System Platform | RMAN BACKUP |           " >> $NAMA_LOG
+
+# Mengambil tahun dan bulan dari tanggal saat ini
+TAHUN=$(date "+%Y")
+BULAN_NUM=$(date "+%m")
+
+# Konversi nomor bulan menjadi format tiga huruf
+case $BULAN_NUM in
+    "01") BULAN="JAN" ;;
+    "02") BULAN="FEB" ;;
+    "03") BULAN="MAR" ;;
+    "04") BULAN="APR" ;;
+    "05") BULAN="MAY" ;;
+    "06") BULAN="JUN" ;;
+    "07") BULAN="JUL" ;;
+    "08") BULAN="AUG" ;;
+    "09") BULAN="SEP" ;;
+    "10") BULAN="OCT" ;;
+    "11") BULAN="NOV" ;;
+    "12") BULAN="DEC" ;;
+    *) echo "Invalid month"; exit 1 ;;
+esac
+
+# Menjalankan command dengan bulan dan tahun yang dinamis dan menambahkan output ke log
+/home/oracle/dbscript/cekbackup.sh $BULAN $TAHUN >> $NAMA_LOG
+
+#cat "/home/oracle/dbscript/teguh/kambing/daily_report_${TANGGAL}.log"
+
+# Baca isi file log
+LOG_CONTENT=$(cat "$NAMA_LOG")
+
+EMAIL_CONTENT=$(cat << !
+Subject: REPORT HARIAN DBCONS
+MIME-Version: 1.0
+Content-Type: text/html; charset="utf-8"
+
+<html>
+<body style="font-family: 'Courier New', Courier, monospace;">
+<div style="border: 1px solid black; background-color: black; color: white; padding: 10px;">
+<h1 style="color: white;">Tanggal ${TANGGAL}</h1>
+<p style="color: white;">Sudah Selesai Cek Report Anda !!! di <a href="file://${NAMA_LOG}" style="color: white;">${NAMA_LOG}</a></p>
+<pre style="color: white; white-space: pre-wrap; word-wrap: break-word;">${LOG_CONTENT}</pre>
+</div>
+</body>
+</html>
+!
+)
+
+##send email
+echo "$EMAIL_CONTENT" | ssmtp z00b41r@gmail.com, maleekaneshiro@gmail.com
